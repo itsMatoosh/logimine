@@ -11,7 +11,6 @@ import com.logitow.logimine.LogiMine;
 import com.logitow.logimine.blocks.BlockBase;
 import com.logitow.logimine.proxy.ClientProxy;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -323,8 +322,15 @@ public class TileEntityBlockKey extends TileEntity {
                 }
             } else {
                 //Block removed.
-                IBlockState state = getWorld().getBlockState(affpos);
-                Minecraft.getMinecraft().effectRenderer.addBlockDestroyEffects(affpos, state);
+                BlockType blockType = operation.blockB.getBlockType();
+                Block colour = BlockBase.getBlockFromName("logimine:"+blockType.name().toLowerCase()+"_lblock");
+                Minecraft.getMinecraft().effectRenderer.addBlockDestroyEffects(affpos, colour.getDefaultState());
+
+                //Checking the end block.
+                if(blockType == BlockType.END) {
+                    //Showing the save gui.
+                    ((ClientProxy)LogiMine.proxy).hideSaveStructureGui();
+                }
             }
         } else {
             if(operation.operationType == BlockOperationType.BLOCK_ADD) {

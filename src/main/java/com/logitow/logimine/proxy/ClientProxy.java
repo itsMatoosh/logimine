@@ -56,6 +56,11 @@ public class ClientProxy extends ServerProxy {
     public void showSaveStructureGui(TileEntityBlockKey blockKey) {
         Minecraft.getMinecraft().displayGuiScreen(new SaveStructureGui(blockKey));
     }
+    public void hideSaveStructureGui() {
+        if(SaveStructureGui.open) {
+            Minecraft.getMinecraft().displayGuiScreen(null);
+        }
+    }
     public void showBluetoothDialogGui(BluetoothState state) {
         Minecraft.getMinecraft().displayGuiScreen(new BluetoothDialogGui(state));
     }

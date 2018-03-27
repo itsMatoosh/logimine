@@ -108,6 +108,7 @@ public class DeviceManagerGui extends GuiScreen {
     public static final ITextComponent TEXT_DEVICE_MANAGER_CANCEL_BUTTON = new TextComponentTranslation("logitow.devicemanager.cancelbutton");
     public static final String TEXT_DEVICE_MANAGER_CONNECTING = "logitow.devicemanager.connecting";
     public static final String TEXT_DEVICE_MANAGER_DISCONNECTING = "logitow.devicemanager.disconnecting";
+    public static final String TEXT_DEVICE_MANAGER_NOTCONNECTED = "logitow.devicemanager.notconnected";
 
     /**
      * Draws the screen and all the components in it.
@@ -267,7 +268,12 @@ public class DeviceManagerGui extends GuiScreen {
             if(button.id == ASSIGNED_DEVICE_BUTTON_ID) {
                 //Disconnecting the device.
                 Minecraft.getMinecraft().player.sendMessage(new TextComponentTranslation(TEXT_DEVICE_MANAGER_DISCONNECTING, HubGui.instance.getSelectedKeyBlock().getAssignedDevice().info.friendlyName));
-                HubGui.instance.getSelectedKeyBlock().getAssignedDevice().disconnect();
+                if(!HubGui.instance.getSelectedKeyBlock().getAssignedDevice().disconnect()) {
+                    //Not connected
+                    Minecraft.getMinecraft().player.sendMessage(new TextComponentTranslation(TEXT_DEVICE_MANAGER_NOTCONNECTED, HubGui.instance.getSelectedKeyBlock().getAssignedDevice().info.friendlyName));
+                    //Closing the dialog.
+                    Minecraft.getMinecraft().displayGuiScreen(null);
+                }
                 button.enabled = false;
                 System.out.println("Disconnecting device: " + HubGui.instance.getSelectedKeyBlock().getAssignedDevice() + ", unassigning it from block " + HubGui.instance.getSelectedKeyBlock());
 

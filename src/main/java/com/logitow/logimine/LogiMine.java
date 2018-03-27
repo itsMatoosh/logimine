@@ -103,6 +103,7 @@ public class LogiMine {
         networkWrapper.registerMessage(LogitowLoadStructureMessageHandler.class, LogitowLoadStructureMessage.class, 4, Side.SERVER);
         networkWrapper.registerMessage(LogitowStructureListMessageHandler.class, LogitowStructureListMessage.class, 5, Side.CLIENT);
         networkWrapper.registerMessage(LogitowStructureListRequestMessageHandler.class, LogitowStructureListRequestMessage.class, 6, Side.SERVER);
+        networkWrapper.registerMessage(LogitowSavedStructureMessageHandler.class, LogitowSavedStructureMessage.class, 7, Side.CLIENT);
     }
 
     @Mod.EventHandler

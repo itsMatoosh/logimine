@@ -6,7 +6,6 @@ import com.logitow.logimine.tiles.TileEntityBlockKey;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
@@ -15,7 +14,7 @@ import java.io.IOException;
 /**
  * Handles the save structures messages.
  */
-public class LogitowSaveStructureMessageHandler implements IMessageHandler<LogitowSaveStructureMessage, IMessage> {
+public class LogitowSaveStructureMessageHandler implements IMessageHandler<LogitowSaveStructureMessage, LogitowSavedStructureMessage> {
 
     final ITextComponent TEXT_KEYBLOCK_DOESNT_EXIST = new TextComponentTranslation("logitow.savestructuremanager.keyblockdoesntexist");
     final ITextComponent TEXT_NO_ATTACHED_STRUCTURE = new TextComponentTranslation("logitow.savestructuremanager.nostructureattached");
@@ -25,7 +24,7 @@ public class LogitowSaveStructureMessageHandler implements IMessageHandler<Logit
     public LogitowSaveStructureMessageHandler(){}
 
     @Override
-    public IMessage onMessage(LogitowSaveStructureMessage message, MessageContext ctx) {
+    public LogitowSavedStructureMessage onMessage(LogitowSaveStructureMessage message, MessageContext ctx) {
         //Null checks.
         if(message.name == null || message.name == "") {
             return null;
@@ -37,52 +36,53 @@ public class LogitowSaveStructureMessageHandler implements IMessageHandler<Logit
         //Getting the sending player.
         EntityPlayerMP serverPlayer = ctx.getServerHandler().player;
 
-        //Execute the action on the main server thread by adding it as a scheduled task
-        serverPlayer.getServerWorld().addScheduledTask(() -> {
-            //Getting the keyblock entity.
-            TileEntityBlockKey usedKeyBlock = null;
-            for (TileEntityBlockKey keyBlock :
-                    LogiMine.activeKeyBlocks) {
-                if(keyBlock.getWorld() != null && !keyBlock.getWorld().isRemote && keyBlock.getPos().equals(message.keyBlock)) {
-                    usedKeyBlock = keyBlock;
-                    break;
-                }
+        //Getting the keyblock entity.
+        TileEntityBlockKey usedKeyBlock = null;
+        for (TileEntityBlockKey keyBlock :
+                LogiMine.activeKeyBlocks) {
+            if(keyBlock.getWorld() != null && !keyBlock.getWorld().isRemote && keyBlock.getPos().equals(message.keyBlock)) {
+                usedKeyBlock = keyBlock;
+                break;
             }
+        }
 
-            //checking
-            if(usedKeyBlock == null) {
-                serverPlayer.sendMessage(TEXT_KEYBLOCK_DOESNT_EXIST);
-                return;
-            }
-            if(usedKeyBlock.getAssignedStructure() == null) {
-                serverPlayer.sendMessage(TEXT_NO_ATTACHED_STRUCTURE);
-                return;
-            }
+        //checking
+        if(usedKeyBlock == null) {
+            serverPlayer.sendMessage(TEXT_KEYBLOCK_DOESNT_EXIST);
+            return new LogitowSavedStructureMessage(false, "");
+        }
+        if(usedKeyBlock.getAssignedStructure() == null) {
+            serverPlayer.sendMessage(TEXT_NO_ATTACHED_STRUCTURE);
+            return new LogitowSavedStructureMessage(false, "");
+        }
 
-            //adding player uuid to the name.
-            String strucName = message.name;
-            strucName = strucName.replace('^','v');
-            strucName = strucName + "^" + serverPlayer.getUniqueID().toString();
+        //adding player uuid to the name.
+        String strucName = message.name;
+        strucName = strucName.replace('^','v');
+        strucName = strucName + "^" + serverPlayer.getUniqueID().toString();
 
-            //deleting old file
-            Structure.removeFile(usedKeyBlock.getAssignedStructure());
+        //deleting old file
+        Structure.removeFile(usedKeyBlock.getAssignedStructure());
 
-            //setting custom name
-            usedKeyBlock.getAssignedStructure().customName = strucName;
+        //setting custom name
+        usedKeyBlock.getAssignedStructure().customName = strucName;
 
-            //saving structures
-            try {
-                usedKeyBlock.getAssignedStructure().saveToFile();
-            } catch (IOException e) {
-                serverPlayer.sendMessage(TEXT_SAVING_ERROR);
-                return;
-            }
+        //saving structures
+        try {
+            usedKeyBlock.getAssignedStructure().saveToFile();
+        } catch (IOException e) {
+            serverPlayer.sendMessage(TEXT_SAVING_ERROR);
+            return new LogitowSavedStructureMessage(false, "");
+        }
 
-            //saved succesfully
-            serverPlayer.sendMessage(new TextComponentTranslation(TEXT_SAVING_SUCCESFUL_KEY, message.name));
-        });
+        //Saved successfully
+        serverPlayer.sendMessage(new TextComponentTranslation(TEXT_SAVING_SUCCESFUL_KEY, message.name));
 
         //No reply
-        return null;
+        if(usedKeyBlock.getAssignedDevice() != null) {
+            return new LogitowSavedStructureMessage(true, usedKeyBlock.getAssignedDevice().info.uuid);
+        } else {
+            return new LogitowSavedStructureMessage(true, "");
+        }
     }
 }

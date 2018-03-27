@@ -45,6 +45,8 @@ public class SaveStructureGui extends GuiScreen {
      */
     private TileEntityBlockKey keyBlock;
 
+    public static boolean open = false;
+
     public SaveStructureGui(TileEntityBlockKey blockKey) {
         this.keyBlock = blockKey;
     }
@@ -130,11 +132,14 @@ public class SaveStructureGui extends GuiScreen {
 
         Minecraft.getMinecraft().mouseHelper.ungrabMouseCursor();
 
+        open = true;
+
         super.initGui();
     }
 
     @Override
     public void onGuiClosed() {
+        open = false;
         super.onGuiClosed();
     }
 
