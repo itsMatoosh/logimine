@@ -420,6 +420,7 @@ public class TileEntityBlockKey extends TileEntity {
             //Saving the current structures to file.
             try {
                 if(keyBlock.getWorld().isRemote) continue;
+                if(!keyBlock.getWorld().equals(saveEvent.getWorld())) continue;
                 if(keyBlock.assignedStructure != null) {
                     keyBlock.assignedStructure.saveToFile();
                 }

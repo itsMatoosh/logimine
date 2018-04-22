@@ -1,6 +1,7 @@
 package com.logitow.logimine.networking;
 
 import com.logitow.bridge.build.Structure;
+import com.logitow.bridge.communication.Device;
 import com.logitow.logimine.LogiMine;
 import com.logitow.logimine.tiles.TileEntityBlockKey;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -63,6 +64,11 @@ public class LogitowSaveStructureMessageHandler implements IMessageHandler<Logit
 
         //deleting old file
         Structure.removeFile(usedKeyBlock.getAssignedStructure());
+
+        //deassociating from the device structure.
+        Device device = usedKeyBlock.getAssignedDevice();
+        usedKeyBlock.assignDevice(null, null);
+        usedKeyBlock.assignStructure(device.currentStructure.clone());
 
         //setting custom name
         usedKeyBlock.getAssignedStructure().customName = strucName;

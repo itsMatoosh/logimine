@@ -49,9 +49,11 @@ public class LogitowDeviceAssignMessageHandler implements IMessageHandler<Logito
 
                 if(keyBlock != null) {
                     if(message.deviceUUID.equals("NULL")) {
-                        //Assigning the keyblock.
+                        //Unassigning the keyblock.
                         serverPlayer.sendMessage(new TextComponentTranslation(TEXT_DEVICE_MANAGER_UNASSIGNED, keyBlock.getAssignedDevice().info.friendlyName));
+                        Device device = keyBlock.getAssignedDevice();
                         keyBlock.assignDevice(null, null);
+                        keyBlock.assignStructure(device.currentStructure.clone());
                     } else {
                         //Assigning the keyblock.
                         keyBlock.assignDevice(serverPlayer, Device.getConnectedFromUuid(message.deviceUUID));

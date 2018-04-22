@@ -6,6 +6,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -24,7 +26,7 @@ public class BluetoothDialogGui extends GuiScreen {
     /**
      * The height of the container graphic.
      */
-    final int containerHeight = 140;
+    final int containerHeight = 210;
     /**
      * The width of the container graphic.
      */
@@ -39,6 +41,13 @@ public class BluetoothDialogGui extends GuiScreen {
      * ID of the close dialog button.
      */
     final int CLOSE_DIALOG_BUTTON_ID = 0;
+
+    public static final ITextComponent TEXT_BLUETOOTH_DIALOG_ENABLE_BLUETOOTH = new TextComponentTranslation("logitow.bluetoothdialog.enablebluetooth");
+    public static final ITextComponent TEXT_BLUETOOTH_DIALOG_ENABLE_BLUETOOTH_INFO = new TextComponentTranslation("logitow.bluetoothdialog.enablebluetooth.infotext");
+    public static final ITextComponent TEXT_BLUETOOTH_DIALOG_COULDNT_ACCESS_BT = new TextComponentTranslation("logitow.bluetoothdialog.couldntaccessbluetooth");
+    public static final ITextComponent TEXT_BLUETOOTH_DIALOG_COULDNT_ACCESS_BT_INFO = new TextComponentTranslation("logitow.bluetoothdialog.couldntaccessbluetooth.infotext");
+    public static final ITextComponent TEXT_BLUETOOTH_DIALOG_DISMISS = new TextComponentTranslation("logitow.bluetoothdialog.dismiss");
+
 
     /**
      * Creates the dialog based on the bluetooth state.
@@ -78,17 +87,17 @@ public class BluetoothDialogGui extends GuiScreen {
             //Bluetooth enabled, closing the dialog.
             Minecraft.getMinecraft().displayGuiScreen(null);
         } else if(currentBluetoothState == BluetoothState.PoweredOff) {
-            drawString(fontRenderer, "Enable Bluetooth!", (width/2) - fontRenderer.getStringWidth("Enable Bluetooth!")/2 + 42, (height/2) - containerHeight/2+30, 0xff0055);
-            infoText = "Make sure that Bluetooth\nfunctionality is enabled\non your system.";
+            drawString(fontRenderer, TEXT_BLUETOOTH_DIALOG_ENABLE_BLUETOOTH.getFormattedText(), (width/2) - fontRenderer.getStringWidth(TEXT_BLUETOOTH_DIALOG_ENABLE_BLUETOOTH.getFormattedText())/2 + 42, (height/2) - containerHeight/2+30, 0xff0055);
+            infoText = TEXT_BLUETOOTH_DIALOG_ENABLE_BLUETOOTH_INFO.getFormattedText();
         } else {
-            drawString(fontRenderer, "Couldn't access Bluetooth!", (width/2) - fontRenderer.getStringWidth("Couldn't access Bluetooth!")/2+42, (height/2) - containerHeight/2+30, 0xff0055);
-            infoText = "Make sure that your \nsystem supports \nBluetooth Low Energy \nand no other application \nis using it.";
+            drawString(fontRenderer, TEXT_BLUETOOTH_DIALOG_COULDNT_ACCESS_BT.getFormattedText(), (width/2) - fontRenderer.getStringWidth(TEXT_BLUETOOTH_DIALOG_COULDNT_ACCESS_BT.getFormattedText())/2+42, (height/2) - containerHeight/2+30, 0xff0055);
+            infoText = TEXT_BLUETOOTH_DIALOG_COULDNT_ACCESS_BT_INFO.getFormattedText();
         }
 
         //Drawing each line.
         int lineOffset = 0;
         for (String line :
-                infoText.split("\n")) {
+                infoText.split("/")) {
             drawString(fontRenderer, line, (width/2) - fontRenderer.getStringWidth(line)/2 + 42, (height/2) - containerHeight/2+47 + lineOffset, 0xffffff);
             lineOffset += 11;
         }
@@ -99,7 +108,7 @@ public class BluetoothDialogGui extends GuiScreen {
     @Override
     public void initGui() {
         buttonList.clear();
-        buttonList.add(new GuiButton(CLOSE_DIALOG_BUTTON_ID, width/2 - 40 + 42, height/2 + 30, 80, 20, "Dismiss"));
+        buttonList.add(new GuiButton(CLOSE_DIALOG_BUTTON_ID, width/2 - 40 + 42, height/2 + 30, 80, 20, TEXT_BLUETOOTH_DIALOG_DISMISS.getFormattedText()));
         super.initGui();
     }
 

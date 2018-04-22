@@ -85,8 +85,6 @@ public class SaveStructureGui extends GuiScreen {
 
     @Override
     protected void actionPerformed(GuiButton button) throws IOException {
-        System.out.println("Action performed!");
-
         if(button.id == CANCEL_BUTTON_ID) {
             Minecraft.getMinecraft().displayGuiScreen(null);
             return;
@@ -130,7 +128,7 @@ public class SaveStructureGui extends GuiScreen {
         field.setFocused(true);
         field.setCursorPosition(0);
 
-        Minecraft.getMinecraft().mouseHelper.ungrabMouseCursor();
+        //Minecraft.getMinecraft().mouseHelper.ungrabMouseCursor();
 
         open = true;
 

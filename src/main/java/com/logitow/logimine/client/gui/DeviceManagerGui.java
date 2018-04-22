@@ -8,6 +8,7 @@ import com.logitow.bridge.event.device.DeviceLostEvent;
 import com.logitow.logimine.LogiMine;
 import com.logitow.logimine.event.LogitowBridgeEvent;
 import com.logitow.logimine.networking.LogitowDeviceAssignMessage;
+import com.logitow.logimine.proxy.ClientProxy;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -100,15 +101,16 @@ public class DeviceManagerGui extends GuiScreen {
     //Translated elements.
     public static final ITextComponent TEXT_DEVICE_MANAGER_TITLE = new TextComponentTranslation("logitow.devicemanager.title");
     public static final ITextComponent TEXT_DEVICE_MANAGER_SELECT_DEVICE = new TextComponentTranslation("logitow.devicemanager.selectdevice");
-    public static final ITextComponent TEXT_DEVICE_MANAGER_AVAILEBLE_DEVICES = new TextComponentTranslation("logitow.devicemanager.availabledevices");
+    public static final ITextComponent TEXT_DEVICE_MANAGER_AVAILABLE_DEVICES = new TextComponentTranslation("logitow.devicemanager.availabledevices");
     public static final ITextComponent TEXT_DEVICE_MANAGER_SCANNING = new TextComponentTranslation("logitow.devicemanager.scanning");
     public static final ITextComponent TEXT_DEVICE_MANAGER_CONNECT_BUTTON = new TextComponentTranslation("logitow.devicemanager.connectbutton");
-    public static final ITextComponent TEXT_DEVICE_MANAGER_DISCONNECT_BUTTON = new TextComponentTranslation("logitow.devicemanager.disconnectbutton");
+    public static final ITextComponent TEXT_DEVICE_MANAGER_ASSIGN_BUTTON = new TextComponentTranslation("logitow.devicemanager.assignbutton");
+    public static final ITextComponent TEXT_DEVICE_MANAGER_UNASSIGN_BUTTON = new TextComponentTranslation("logitow.devicemanager.unassignbutton");
+    public static final ITextComponent TEXT_DEVICE_MANAGER_CONNECTED_LABEL = new TextComponentTranslation("logitow.devicemanager.connectedlabel");
     public static final ITextComponent TEXT_DEVICE_MANAGER_SCAN_BUTTON = new TextComponentTranslation("logitow.devicemanager.scanbutton");
     public static final ITextComponent TEXT_DEVICE_MANAGER_CANCEL_BUTTON = new TextComponentTranslation("logitow.devicemanager.cancelbutton");
     public static final String TEXT_DEVICE_MANAGER_CONNECTING = "logitow.devicemanager.connecting";
-    public static final String TEXT_DEVICE_MANAGER_DISCONNECTING = "logitow.devicemanager.disconnecting";
-    public static final String TEXT_DEVICE_MANAGER_NOTCONNECTED = "logitow.devicemanager.notconnected";
+    public static final String TEXT_DEVICE_MANAGER_ASSIGNING = "logitow.devicemanager.assigning";
 
     /**
      * Draws the screen and all the components in it.
@@ -139,6 +141,15 @@ public class DeviceManagerGui extends GuiScreen {
             }
         }
 
+        //Connect/Assign button.
+        if(deviceChosen != -1) {
+            if(deviceChosen >= 200) {
+                connectButton.displayString = TEXT_DEVICE_MANAGER_CONNECT_BUTTON.getFormattedText();
+            } else {
+                connectButton.displayString = TEXT_DEVICE_MANAGER_ASSIGN_BUTTON.getFormattedText();
+            }
+        }
+
         //Available devices/Select device
         if(HubGui.instance.getSelectedKeyBlock() != null) {
             String selectDevice = TEXT_DEVICE_MANAGER_SELECT_DEVICE.getFormattedText();
@@ -149,7 +160,7 @@ public class DeviceManagerGui extends GuiScreen {
                 connectButton.enabled = false;
             }
         } else {
-            String availableDevices = TEXT_DEVICE_MANAGER_AVAILEBLE_DEVICES.getFormattedText();
+            String availableDevices = TEXT_DEVICE_MANAGER_AVAILABLE_DEVICES.getFormattedText();
             drawString(fontRenderer, availableDevices, (width/2) - fontRenderer.getStringWidth(availableDevices)/2, (height/2) - containerHeight/3 +17, 0x8b8b8b);
             connectButton.enabled = false;
         }
@@ -217,8 +228,32 @@ public class DeviceManagerGui extends GuiScreen {
             //Adding the new device.
             int buttonId = 100 + instance.buttonList.size() - 3;
             instance.ASSIGNED_DEVICE_BUTTON_ID = buttonId;
-            instance.buttonList.add(new GuiButton(buttonId, instance.width / 2 - 70, newYPos + instance.deviceButtonSeparation, 140, 20, "[" + TEXT_DEVICE_MANAGER_DISCONNECT_BUTTON.getFormattedText().toUpperCase() + "] " + HubGui.instance.getSelectedKeyBlock().getAssignedDevice()));
+            instance.buttonList.add(new GuiButton(buttonId, instance.width / 2 - 70, newYPos + instance.deviceButtonSeparation, 140, 20, "[" + TEXT_DEVICE_MANAGER_UNASSIGN_BUTTON.getFormattedText().toUpperCase() + "] " + HubGui.instance.getSelectedKeyBlock().getAssignedDevice()));
         }
+
+        //Adding the connected devices list.
+        for (Device connected :
+                LogitowDeviceManager.current.connectedDevices) {
+            //Skipping the assigned device.
+            if (HubGui.instance.getSelectedKeyBlock() != null && HubGui.instance.getSelectedKeyBlock().getAssignedDevice() != null && connected.equals(HubGui.instance.getSelectedKeyBlock().getAssignedDevice())) return;
+
+            //The new y pos of the element.
+            int newYPos = getDeviceStartPosition() - deviceButtonSeparation;
+
+            //Getting the highest y position of the elements.
+            for (GuiButton button :
+                    buttonList) {
+                if (button.id > 100 && button.y > newYPos) {
+                    newYPos = button.y;
+                }
+            }
+
+            //Adding the new device.
+            int buttonId = 100 + buttonList.size() - 3;
+            buttonList.add(new GuiButton(buttonId, width / 2 - 70, newYPos + deviceButtonSeparation, 140, 20, "[" + TEXT_DEVICE_MANAGER_CONNECTED_LABEL.getFormattedText().toUpperCase() + "] " + connected.toString()));
+            discoveredDevices.put(connected, buttonId);
+        }
+
         super.initGui();
     }
 
@@ -234,18 +269,31 @@ public class DeviceManagerGui extends GuiScreen {
                 for (Device device :
                         discoveredDevices.keySet()) {
                     if(discoveredDevices.get(device) == deviceChosen) {
-                        Minecraft.getMinecraft().player.sendMessage(new TextComponentTranslation(TEXT_DEVICE_MANAGER_CONNECTING, device.info.friendlyName));
-
+                        //Unassigning if there is one device connected already.
                         if(instance != null && HubGui.instance.getSelectedKeyBlock() != null && HubGui.instance.getSelectedKeyBlock().getAssignedDevice() != null) {
-                            HubGui.instance.getSelectedKeyBlock().getAssignedDevice().disconnect();
+                            if(HubGui.instance.getSelectedKeyBlock().getAssignedDevice().equals(device)) {
+                                Minecraft.getMinecraft().displayGuiScreen(null);
+                                return;
+                            }
+                            LogiMine.networkWrapper.sendToServer(new LogitowDeviceAssignMessage(HubGui.instance.getSelectedKeyBlock().getPos(), null));
+                            HubGui.instance.getSelectedKeyBlock().assignDevice(null, null);
                         }
 
-                        //Found the appropriate device. Assigning on client.
+                        //Assigning the new device locally.
                         HubGui.instance.getSelectedKeyBlock().assignDevice(Minecraft.getMinecraft().player, device);
 
-                        //Avoiding slowdowns.
-                        new Thread(() -> device.connect()).start();
+                        if(deviceChosen >= 200) {
+                            //Connect
+                            Minecraft.getMinecraft().player.sendMessage(new TextComponentTranslation(TEXT_DEVICE_MANAGER_CONNECTING, device));
 
+                            //Avoiding slowdowns.
+                            new Thread(() -> device.connect()).start();
+                        } else {
+                            //Assigning on the server.
+                            Minecraft.getMinecraft().player.sendMessage(new TextComponentTranslation(TEXT_DEVICE_MANAGER_ASSIGNING, device));
+
+                            LogiMine.networkWrapper.sendToServer(new LogitowDeviceAssignMessage(HubGui.instance.getSelectedKeyBlock().getPos(), device));
+                        }
                     }
                 }
                 Minecraft.getMinecraft().displayGuiScreen(null);
@@ -266,44 +314,11 @@ public class DeviceManagerGui extends GuiScreen {
         //Device button has been selected.
         if(button.id >= 100) {
             if(button.id == ASSIGNED_DEVICE_BUTTON_ID) {
-                //Disconnecting the device.
-                Minecraft.getMinecraft().player.sendMessage(new TextComponentTranslation(TEXT_DEVICE_MANAGER_DISCONNECTING, HubGui.instance.getSelectedKeyBlock().getAssignedDevice().info.friendlyName));
-                if(!HubGui.instance.getSelectedKeyBlock().getAssignedDevice().disconnect()) {
-                    //Not connected
-                    Minecraft.getMinecraft().player.sendMessage(new TextComponentTranslation(TEXT_DEVICE_MANAGER_NOTCONNECTED, HubGui.instance.getSelectedKeyBlock().getAssignedDevice().info.friendlyName));
-                    //Closing the dialog.
-                    Minecraft.getMinecraft().displayGuiScreen(null);
-                }
-                button.enabled = false;
-                System.out.println("Disconnecting device: " + HubGui.instance.getSelectedKeyBlock().getAssignedDevice() + ", unassigning it from block " + HubGui.instance.getSelectedKeyBlock());
-
-                //Unassigning
-                HubGui.instance.getSelectedKeyBlock().assignDevice(null, null);
-                LogiMine.networkWrapper.sendToServer(new LogitowDeviceAssignMessage(HubGui.instance.getSelectedKeyBlock().getPos(), null));
-
-                //Updating the buttons.
-                GuiButton buttonToRemove = null;
-                int lastY = getDeviceStartPosition()-deviceButtonSeparation;
-                for (GuiButton registered :
-                        buttonList) {
-                    if(registered.id == ASSIGNED_DEVICE_BUTTON_ID) {
-                        buttonToRemove = registered;
-                    }
-                    else if(registered.id > 100) {
-                        registered.y = lastY + deviceButtonSeparation;
-                        lastY = registered.y;
-                    }
-                }
-
-                //Removing the button.
-                buttonList.remove(buttonToRemove);
-
-                //Closing the dialog.
-                Minecraft.getMinecraft().displayGuiScreen(null);
+                ((ClientProxy)LogiMine.proxy).showUnassignDialog(HubGui.instance.getSelectedKeyBlock().getAssignedDevice(), HubGui.getSelectedKeyBlock());
             }
             if(HubGui.instance.getSelectedKeyBlock() != null) {
-                System.out.println("Selected device " + deviceChosen);
                 deviceChosen = button.id;
+                System.out.println("Selected device " + deviceChosen);
             }
         }
 
@@ -360,7 +375,7 @@ public class DeviceManagerGui extends GuiScreen {
             }
 
             //Adding the new device.
-            int buttonId = 100 + buttonList.size()-3;
+            int buttonId = 200 + buttonList.size()-3;
             buttonList.add(new GuiButton(buttonId, width/2 - 70, newYPos + deviceButtonSeparation, 140, 20, discoveredEvent.device.toString()));
             discoveredDevices.put(discoveredEvent.device, buttonId);
         } else if(event.deviceEvent instanceof DeviceLostEvent) {

@@ -34,7 +34,7 @@ public class ClientProxy extends ServerProxy {
     }
 
     public void setSelectedKeyBlock(BlockPos blockKey) {
-        if(HubGui.instance != null) {
+        if(blockKey != null && HubGui.instance != null) {
             HubGui.setSelectedKeyBlock(blockKey);
         }
     }
@@ -54,7 +54,9 @@ public class ClientProxy extends ServerProxy {
     }
 
     public void showSaveStructureGui(TileEntityBlockKey blockKey) {
-        Minecraft.getMinecraft().displayGuiScreen(new SaveStructureGui(blockKey));
+        if(blockKey != null) {
+            Minecraft.getMinecraft().displayGuiScreen(new SaveStructureGui(blockKey));
+        }
     }
     public void hideSaveStructureGui() {
         if(SaveStructureGui.open) {
@@ -81,5 +83,8 @@ public class ClientProxy extends ServerProxy {
         if(LoadStructureGui.instance != null) {
             LoadStructureGui.instance.onPageLoaded(page);
         }
+    }
+    public void showUnassignDialog(Device device, TileEntityBlockKey keyBlock) {
+        Minecraft.getMinecraft().displayGuiScreen(new UnassignDialogGui(device, keyBlock));
     }
 }
