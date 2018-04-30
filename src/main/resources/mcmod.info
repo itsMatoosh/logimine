@@ -1,16 +1,14 @@
-[
-{
-  "modid": "logimine",
-  "name": "LogiMine",
-  "description": "Brings Logitow Smart Blocks support to Minecraft",
-  "version": "${version}",
-  "mcversion": "${mcversion}",
-  "url": "http://logitow.com/",
-  "updateUrl": "",
-  "authorList": ["Mateusz "itsMatoosh" Rebacz"],
-  "credits": "Paracra Technology Co., Ltd",
-  "logoFile": "assets/logimine/icon.png",
-  "screenshots": ["assets/logimine/showcase/sc1.jpg","assets/logimine/showcase/sc2.jpg"],
-  "dependencies": []
-}
-]
+[{
+    "modid": "logimine",
+      "name": "LogiMine",
+      "description": "Brings Logitow Smart Blocks support to Minecraft",
+      "version": "${version}",
+      "mcversion": "${mcversion}",
+      "url": "http://logitow.com/",
+      "updateUrl": "https://github.com/itsMatoosh/logimine/blob/master/update.json",
+      "authorList": ["Mateusz 'itsMatoosh' Rebacz"],
+      "credits": "Paracra Technology Co. Ltd",
+      "logoFile": "assets/logimine/icon.png",
+      "screenshots": ["assets/logimine/showcase/sc1.jpg","assets/logimine/showcase/sc2.jpg"],
+      "dependencies": []
+}]
