@@ -415,8 +415,9 @@ public class TileEntityBlockKey extends TileEntity {
 
         logger.info("Saving the current structures...");
 
-        for (TileEntityBlockKey keyBlock :
-                LogiMine.activeKeyBlocks) {
+        for (int i = 0; i < LogiMine.activeKeyBlocks.size(); i++) {
+            TileEntityBlockKey keyBlock = LogiMine.activeKeyBlocks.get(i);
+
             //Saving the current structures to file.
             try {
                 if(keyBlock.getWorld().isRemote) continue;

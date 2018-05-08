@@ -5,7 +5,7 @@
       "version": "${version}",
       "mcversion": "${mcversion}",
       "url": "http://logitow.com/",
-      "updateUrl": "https://github.com/itsMatoosh/logimine/blob/master/update.json",
+      "updateUrl": "https://raw.githubusercontent.com/itsMatoosh/logimine/master/update.json",
       "authorList": ["Mateusz 'itsMatoosh' Rebacz"],
       "credits": "Paracra Technology Co. Ltd",
       "logoFile": "assets/logimine/icon.png",

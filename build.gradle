@@ -12,7 +12,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
 
-version = "1.12.2-0.9.2"
+version = "0.9.2"
 group = "com.logitow.logimine" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "logimine"
 
@@ -42,6 +42,7 @@ minecraft {
 dependencies {
     // https://mvnrepository.com/artifact/net.sf.jni4net/jni4net.j
     compile group: 'net.sf.jni4net', name: 'jni4net.j', version: '0.8.8.0', ext: 'pom'
+    compile group: 'com.github.zafarkhaja', name: 'java-semver', version: '0.9.0'
     compile 'org.apache.commons:commons-lang3:3.5'
     compile name: 'logitow-bridge-0.9.1-all'
 

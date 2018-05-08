@@ -44,7 +44,7 @@ import java.util.ArrayList;
 public class LogiMine {
     public static final String modId = "logimine";
     public static final String name = "LogiMine";
-    public static final String version = "1.0.0";
+    public static final String version = "0.9.2";
     public final static SimpleNetworkWrapper networkWrapper = NetworkRegistry.INSTANCE.newSimpleChannel(modId);
 
     public EventHandler logitowBridgeEventHandler = new EventHandler() {

@@ -1,23 +1,34 @@
 package com.logitow.logimine.proxy;
 
+import com.google.gson.JsonObject;
 import com.logitow.bridge.communication.BluetoothState;
 import com.logitow.bridge.communication.Device;
 import com.logitow.logimine.LogiMine;
 import com.logitow.logimine.client.gui.*;
+import com.logitow.logimine.event.LogiMineUpdateCheckEvent;
 import com.logitow.logimine.event.LogitowBridgeClientEventHandler;
 import com.logitow.logimine.networking.LogitowEventForwarder;
 import com.logitow.logimine.tiles.TileEntityBlockKey;
+import com.logitow.logimine.update.Updater;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.event.ClickEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
 /**
  * Created by James on 14/12/2017.
  */
 public class ClientProxy extends ServerProxy {
+    private static boolean checkedUpdate = false;
+    private static EntityPlayer currPlay = null;
+
     @Override
     public void registerItemRenderer(Item item, int meta, String id) {
         ModelLoader.setCustomModelResourceLocation(item, meta, new ModelResourceLocation(LogiMine.modId + ":" + id, "inventory"));
@@ -31,6 +42,7 @@ public class ClientProxy extends ServerProxy {
         //Registering the mod side bridge event.
         MinecraftForge.EVENT_BUS.register(LogitowBridgeClientEventHandler.class);
         MinecraftForge.EVENT_BUS.register(LogitowEventForwarder.class);
+        MinecraftForge.EVENT_BUS.register(ClientProxy.class);
     }
 
     public void setSelectedKeyBlock(BlockPos blockKey) {
@@ -86,5 +98,43 @@ public class ClientProxy extends ServerProxy {
     }
     public void showUnassignDialog(Device device, TileEntityBlockKey keyBlock) {
         Minecraft.getMinecraft().displayGuiScreen(new UnassignDialogGui(device, keyBlock));
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (checkedUpdate) return;
+        if(event.player.getEntityWorld().isRemote) return;
+
+        currPlay = event.player;
+
+        //Will check for updates of the mod.
+        Updater.checkUpdates();
+
+        checkedUpdate = true;
+    }
+
+    /**
+     * Called when updates for the mod have been fetched.
+     * @param updateCheckEvent
+     */
+    @SubscribeEvent
+    public static void onUpdateCheck(LogiMineUpdateCheckEvent updateCheckEvent) {
+        if(updateCheckEvent.updateCheckResult == Updater.UpdateCheckResult.NEW_VERSION_AVAILABLE) {
+            JsonObject promoObject = updateCheckEvent.updateInfo.get("promos").getAsJsonObject();
+
+            String versionKey = Minecraft.getMinecraft().getVersion() + "-latest";
+            String latestVersionString = promoObject.get(versionKey).getAsString();
+            String homePage = updateCheckEvent.updateInfo.get("homepage").getAsString();
+
+            TextComponentString updateMessage = new TextComponentString("LogiMine version: " + latestVersionString + " available! Click to download!");
+            updateMessage.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, homePage));
+
+            currPlay.sendMessage(updateMessage);
+
+        } else if (updateCheckEvent.updateCheckResult == Updater.UpdateCheckResult.UP_TO_DATE){
+            Minecraft.getMinecraft().player.sendMessage(new TextComponentString("LogiMine is up to date!"));
+        } else {
+            Minecraft.getMinecraft().player.sendMessage(new TextComponentString("Error checking updates for LogiMine!"));
+        }
     }
 }

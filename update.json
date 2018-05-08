@@ -1,13 +1,12 @@
 {
   "homepage": "https://github.com/itsMatoosh/logimine/releases",
   "1.12.2": {
-    "0.9.3": "Added mod update notifications.",
-    "0.9.2": "Fixed issues with mcmod.info and added auto-updater information.",
+    "0.9.2": "Added an update checker and fixed issues with mcmod.info.",
   	"0.9.1": "Fixed and issue with the mod not recognizing some of the Logitow Blocks. \nAdded an option to retain the connection to a Logitow device once a build is finished.",
     "0.9": "Initial public release of the mod"
   },
   "promos": {
-    "1.12.2-latest": "0.9.3",
-    "1.12.2-recommended": "0.9.3"
+    "1.12.2-latest": "0.9.2",
+    "1.12.2-recommended": "0.9.2"
   }
 }
